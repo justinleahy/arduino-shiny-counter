@@ -13,6 +13,12 @@ int adc_key_in  = 0;
 int count;
 int multi;
 
+// Declare what the denominator of the ratio is for the pokemon you're hunting. Determined by shiny charm, generation, etc.
+int probability = 4096;
+
+unsigned long long fact;
+long double calcedProb;
+
 int read_LCD_buttons()
 {
   adc_key_in = analogRead(0);
@@ -27,10 +33,62 @@ int read_LCD_buttons()
   
 }
 
+// Obtained from StackOverflow
+// https://stackoverflow.com/a/37462196
+void convertToCharArray(unsigned char *arr, long long a)
+{
+  int i = 0;
+  
+  for (i = 0; i < 8; ++i)
+  {
+    arr[i] = (unsigned char)((((unsigned long long) a) >> (56 - (8*i))) & 0xFFu);
+  }
+}
+
+void factorial(int n)
+{
+  fact = 1;
+  
+  int i;
+  for(i = 1; i <= n; ++i)
+  {
+    fact *= i;
+  }
+}
+
+int nCr(int n, int r)
+{
+  // Numerator
+  factorial(n);
+  unsigned long long num = fact;
+  // Denominator
+  factorial(r);
+  unsigned long long dem = fact;
+  factorial(n - r);
+  dem = dem * fact;
+  
+  return num/dem;
+}
+
+void calcProb()
+{
+  long double p = (long double)1 / (long double)probability;
+  
+  long double l_p = (long double)1 - p;
+  
+  long double n_p = pow(l_p,count - 1);
+  
+  calcedProb = ((long double)count * p * n_p);
+  
+}
+
 void setup()
 {
+  Serial.begin(9600);
+  
+  
   // Declare the name here
-  char name[] = "Deoxys";
+  char name[] = "Regieleki";
   
   // If you want to change what count value you start with
   count = 0;
@@ -78,16 +136,24 @@ void updateCount(int n)
     count = 0;
   }
   
+  calcProb();
+  
   lcd.setCursor(0,1);
   lcd.print("                ");
   lcd.setCursor(0,1);
   lcd.print(count);
+  lcd.setCursor(11,1);
+  char probString[5];
+  calcedProb *= (long double)100;
+  dtostrf(calcedProb, 4, 2, probString);
+  lcd.print(probString);
+  lcd.print("%");
 }
 
 void save()
 {
   // Add some day, https://www.arduino.cc/en/Reference/EEPROM
-  // Becareful because the memory only has ~100,000 read/write cycles
+  // Be careful because the memory only has ~100,000 read/write cycles
 }
 
 void loop()
@@ -120,7 +186,8 @@ void loop()
     }
     case btnSELECT:
     {
-      save();
+      calcProb();
+      delay(1000);
       break;
     }
     case btnNONE:
@@ -132,3 +199,4 @@ void loop()
   // Makes the buttons much more manageable. Instead they'd be going up way too fast for normal people.
   delay(100);
 }
+
