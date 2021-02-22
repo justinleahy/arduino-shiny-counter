@@ -35,13 +35,19 @@ int read_LCD_buttons()
 
 void calcProb()
 {
+  if(count == 0)
+  {
+    calcedProb = 0;
+    return;
+  }
+  
   long double p = (long double)1 / (long double)probability;
   
   long double l_p = (long double)1 - p;
   
   long double n_p = l_p;
   
-  for(int i = 0; i < count; i++)
+  for(int i = 0; i < count - 1; i++)
   {
     n_p *= l_p;
   }
@@ -152,7 +158,7 @@ void loop()
     }
     case btnSELECT:
     {
-      calcProb();
+      save();
       delay(1000);
       break;
     }
