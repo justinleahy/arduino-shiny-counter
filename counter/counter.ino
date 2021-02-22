@@ -33,60 +33,25 @@ int read_LCD_buttons()
   
 }
 
-// Obtained from StackOverflow
-// https://stackoverflow.com/a/37462196
-void convertToCharArray(unsigned char *arr, long long a)
-{
-  int i = 0;
-  
-  for (i = 0; i < 8; ++i)
-  {
-    arr[i] = (unsigned char)((((unsigned long long) a) >> (56 - (8*i))) & 0xFFu);
-  }
-}
-
-void factorial(int n)
-{
-  fact = 1;
-  
-  int i;
-  for(i = 1; i <= n; ++i)
-  {
-    fact *= i;
-  }
-}
-
-int nCr(int n, int r)
-{
-  // Numerator
-  factorial(n);
-  unsigned long long num = fact;
-  // Denominator
-  factorial(r);
-  unsigned long long dem = fact;
-  factorial(n - r);
-  dem = dem * fact;
-  
-  return num/dem;
-}
-
 void calcProb()
 {
   long double p = (long double)1 / (long double)probability;
   
   long double l_p = (long double)1 - p;
   
-  long double n_p = pow(l_p,count - 1);
+  long double n_p = l_p;
   
-  calcedProb = ((long double)count * p * n_p);
+  for(int i = 0; i < count; i++)
+  {
+    n_p *= l_p;
+  }
+  
+  calcedProb = (1 - n_p);
   
 }
 
 void setup()
-{
-  Serial.begin(9600);
-  
-  
+{  
   // Declare the name here
   char name[] = "Regieleki";
   
@@ -147,6 +112,7 @@ void updateCount(int n)
   calcedProb *= (long double)100;
   dtostrf(calcedProb, 4, 2, probString);
   lcd.print(probString);
+  lcd.setCursor(15,1);
   lcd.print("%");
 }
 
